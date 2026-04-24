@@ -131,6 +131,7 @@ def submit_mcq_test(request, app_id):
     for q in questions:
         # Answers posted as q_{id}
         answer = request.POST.get(f"q_{q['id']}")
+        q['user_answer'] = answer
         if answer == q['correct_option']:
             correct_count += 1
             
@@ -148,11 +149,12 @@ def submit_mcq_test(request, app_id):
     app.save()
     
     # Update attempt record
+    attempt.questions_data = questions
     attempt.score = score_percentage
     attempt.passed = passed
     attempt.save()
     
-    return redirect('dashboard')
+    return redirect('assessments:mcq_detail', app_id=app.id)
 
 from .models import QuestionBank, CandidateMCQAttempt, VoiceInterview, VoiceQuestionResponse
 from .mcq_generator import fetch_wiki_summary
@@ -220,7 +222,7 @@ def take_voice_test(request, app_id):
                 interview=interview,
                 question_number=i,
                 question_text=q_text,
-                expected_answer="", # No longer used for comparison scoring
+                expected_answer=f"The candidate is expected to mention practical applications of {topic.upper()}, including problem-solving steps and relevant core concepts.",
                 is_technical=True
             )
             
@@ -230,7 +232,7 @@ def take_voice_test(request, app_id):
     if not pending_question:
         # All 5 answered, calculate final score
         calculate_final_voice_score(request, app, interview)
-        return redirect('dashboard')
+        return redirect('assessments:voice_detail', app_id=app.id)
         
     progress_percent = ((pending_question.question_number - 1) / 5) * 100
         
@@ -362,8 +364,8 @@ def calculate_final_voice_score(request, app, interview):
 def voice_detail(request, app_id):
     app = get_object_or_404(Application, pk=app_id)
     
-    # Simple auth check: only the hiring company, the assigned HR, or admin should see this
-    if request.user.role not in ['COMPANY', 'HR', 'ADMIN']:
+    # Simple auth check: only the hiring company, the assigned HR, admin, or the candidate should see this
+    if request.user.role not in ['COMPANY', 'HR', 'ADMIN'] and request.user != app.candidate:
         messages.error(request, "Permission denied.")
         return redirect('dashboard')
         
@@ -379,4 +381,25 @@ def voice_detail(request, app_id):
         'app': app,
         'interview': interview,
         'responses': responses
+    })
+
+@login_required
+def mcq_detail(request, app_id):
+    app = get_object_or_404(Application, pk=app_id)
+    
+    # Simple auth check: only the hiring company, the assigned HR, admin, or the candidate should see this
+    if request.user.role not in ['COMPANY', 'HR', 'ADMIN'] and request.user != app.candidate:
+        messages.error(request, "Permission denied.")
+        return redirect('dashboard')
+        
+    try:
+        attempt = CandidateMCQAttempt.objects.get(application=app)
+    except CandidateMCQAttempt.DoesNotExist:
+        messages.error(request, "No MCQ data found.")
+        return redirect('dashboard')
+        
+    return render(request, 'assessments/mcq_detail.html', {
+        'app': app,
+        'attempt': attempt,
+        'questions': attempt.questions_data
     })

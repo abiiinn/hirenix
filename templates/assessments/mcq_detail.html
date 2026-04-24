@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}MCQ Results - Hirenix{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto mt-8">
+    <div class="mb-8 flex justify-between items-end">
+        <div>
+            {% if request.user.role == 'CANDIDATE' %}
+            <a href="{% url 'dashboard' %}"
+                class="text-blue-600 hover:text-blue-800 text-sm font-semibold mb-2 inline-flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Back to Dashboard
+            </a>
+            {% else %}
+            <a href="{% url 'jobs:rankings' app.job.id %}"
+                class="text-blue-600 hover:text-blue-800 text-sm font-semibold mb-2 inline-flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Back to Applicants
+            </a>
+            {% endif %}
+            <h1 class="text-3xl font-bold text-gray-900 mb-1">Level 1 MCQ: {{ app.candidate.username }}</h1>
+            <p class="text-gray-500">Job: {{ app.job.title }}</p>
+        </div>
+        <div class="text-right">
+            <span class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-bold
+                {% if attempt.passed %}bg-emerald-100 text-emerald-800{% else %}bg-red-100 text-red-800{% endif %}">
+                {% if attempt.passed %}PASSED{% else %}FAILED{% endif %}
+            </span>
+        </div>
+    </div>
+
+    <!-- Overall Score -->
+    <div
+        class="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm mb-8 flex justify-between items-center bg-gray-50">
+        <div class="text-center w-full">
+            <p class="text-sm font-semibold text-indigo-600 uppercase tracking-wider mb-1">Overall Score</p>
+            <p class="text-4xl font-extrabold text-gray-900">{{ attempt.score|floatformat:0 }}%</p>
+        </div>
+    </div>
+
+    <h2 class="text-2xl font-bold text-gray-900 mb-6">Question Breakdown</h2>
+
+    <div class="space-y-6">
+        {% for q in questions %}
+        <div class="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm relative overflow-hidden">
+            {% if q.user_answer == q.correct_option %}
+            <div class="absolute top-0 right-0 w-2 h-full bg-emerald-500"></div>
+            {% else %}
+            <div class="absolute top-0 right-0 w-2 h-full bg-red-500"></div>
+            {% endif %}
+
+            <div class="flex justify-between items-start mb-4 pr-6">
+                <h3 class="text-lg font-bold text-gray-900">
+                    <span class="text-indigo-600 mr-2">Q{{ q.id }}.</span>
+                    {{ q.question_text }}
+                </h3>
+                <div class="flex gap-2 shrink-0">
+                    {% if q.user_answer == q.correct_option %}
+                        <span class="text-xs bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg border border-emerald-100 font-bold">Correct</span>
+                    {% else %}
+                        <span class="text-xs bg-red-50 text-red-700 px-3 py-1.5 rounded-lg border border-red-100 font-bold">Wrong</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                <!-- Option A -->
+                <div class="p-4 rounded-xl border-2 transition-all
+                    {% if q.correct_option == 'A' %} border-emerald-500 bg-emerald-50 {% elif q.user_answer == 'A' and q.user_answer != q.correct_option %} border-red-500 bg-red-50 {% else %} border-gray-100 bg-gray-50 {% endif %}">
+                    <div class="flex gap-3">
+                        <span class="font-bold {% if q.correct_option == 'A' %}text-emerald-700{% elif q.user_answer == 'A' %}text-red-700{% else %}text-gray-500{% endif %}">A.</span>
+                        <span class="text-gray-800 font-medium">{{ q.option_a }}</span>
+                    </div>
+                </div>
+                
+                <!-- Option B -->
+                <div class="p-4 rounded-xl border-2 transition-all
+                    {% if q.correct_option == 'B' %} border-emerald-500 bg-emerald-50 {% elif q.user_answer == 'B' and q.user_answer != q.correct_option %} border-red-500 bg-red-50 {% else %} border-gray-100 bg-gray-50 {% endif %}">
+                    <div class="flex gap-3">
+                        <span class="font-bold {% if q.correct_option == 'B' %}text-emerald-700{% elif q.user_answer == 'B' %}text-red-700{% else %}text-gray-500{% endif %}">B.</span>
+                        <span class="text-gray-800 font-medium">{{ q.option_b }}</span>
+                    </div>
+                </div>
+
+                <!-- Option C -->
+                <div class="p-4 rounded-xl border-2 transition-all
+                    {% if q.correct_option == 'C' %} border-emerald-500 bg-emerald-50 {% elif q.user_answer == 'C' and q.user_answer != q.correct_option %} border-red-500 bg-red-50 {% else %} border-gray-100 bg-gray-50 {% endif %}">
+                    <div class="flex gap-3">
+                        <span class="font-bold {% if q.correct_option == 'C' %}text-emerald-700{% elif q.user_answer == 'C' %}text-red-700{% else %}text-gray-500{% endif %}">C.</span>
+                        <span class="text-gray-800 font-medium">{{ q.option_c }}</span>
+                    </div>
+                </div>
+
+                <!-- Option D -->
+                <div class="p-4 rounded-xl border-2 transition-all
+                    {% if q.correct_option == 'D' %} border-emerald-500 bg-emerald-50 {% elif q.user_answer == 'D' and q.user_answer != q.correct_option %} border-red-500 bg-red-50 {% else %} border-gray-100 bg-gray-50 {% endif %}">
+                    <div class="flex gap-3">
+                        <span class="font-bold {% if q.correct_option == 'D' %}text-emerald-700{% elif q.user_answer == 'D' %}text-red-700{% else %}text-gray-500{% endif %}">D.</span>
+                        <span class="text-gray-800 font-medium">{{ q.option_d }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            {% if not q.user_answer %}
+            <p class="mt-4 text-sm font-semibold text-amber-600 bg-amber-50 inline-block px-3 py-1 rounded-md">⚠️ No answer submitted for this question.</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

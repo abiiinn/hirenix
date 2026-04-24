@@ -6,6 +6,16 @@
 <div class="max-w-4xl mx-auto mt-8">
     <div class="mb-8 flex justify-between items-end">
         <div>
+            {% if request.user.role == 'CANDIDATE' %}
+            <a href="{% url 'dashboard' %}"
+                class="text-blue-600 hover:text-blue-800 text-sm font-semibold mb-2 inline-flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Back to Dashboard
+            </a>
+            {% else %}
             <a href="{% url 'jobs:rankings' app.job.id %}"
                 class="text-blue-600 hover:text-blue-800 text-sm font-semibold mb-2 inline-flex items-center gap-1">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -14,6 +24,7 @@
                 </svg>
                 Back to Applicants
             </a>
+            {% endif %}
             <h1 class="text-3xl font-bold text-gray-900 mb-1">Level 2 Voice Interview: {{ app.candidate.username }}</h1>
             <p class="text-gray-500">Job: {{ app.job.title }}</p>
         </div>
@@ -62,7 +73,13 @@
                     {% if response.is_technical %}
                     <span
                         class="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-100 font-semibold"
-                        title="TF-IDF Match">Tech: {{ response.technical_score|floatformat:0 }}</span>
+                        title="TF-IDF Match">Tech Score: {{ response.technical_score|floatformat:0 }} / 100</span>
+                    
+                    {% if response.technical_score >= 40.0 %}
+                        <span class="text-xs bg-emerald-50 text-emerald-700 px-2 py-1 rounded border border-emerald-100 font-semibold">Correct / Accepted</span>
+                    {% else %}
+                        <span class="text-xs bg-red-50 text-red-700 px-2 py-1 rounded border border-red-100 font-semibold">Poor / Wrong Answer</span>
+                    {% endif %}
                     {% endif %}
                 </div>
             </div>
