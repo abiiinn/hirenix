@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Post a Job - Hirenix{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto mt-6">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Post a New Job</h1>
+        <p class="text-gray-500">Create a listing and let our AI find your ideal candidates.</p>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-xl p-8">
+        <form method="POST" action="{% url 'jobs:create' %}" class="space-y-6">
+            {% csrf_token %}
+
+            <div>
+                <label for="title" class="block text-sm font-semibold text-gray-700 mb-1">Job Title</label>
+                <input type="text" id="title" name="title" required
+                    class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder-gray-400"
+                    placeholder="e.g. Senior Machine Learning Engineer">
+            </div>
+
+            <div>
+                <label for="description" class="block text-sm font-semibold text-gray-700 mb-1">Job Description</label>
+                <p class="text-xs text-gray-500 mb-2">Our AI ATS uses this to match semantic context with resumes.</p>
+                <textarea id="description" name="description" required rows="6"
+                    class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder-gray-400"
+                    placeholder="Describe the role and responsibilities..."></textarea>
+            </div>
+
+            <div>
+                <label for="requirements" class="block text-sm font-semibold text-gray-700 mb-1">Requirements &
+                    Skills</label>
+                <p class="text-xs text-gray-500 mb-2">Mention tools, languages, and core domains (e.g. Python, NLP,
+                    React).</p>
+                <textarea id="requirements" name="requirements" required rows="4"
+                    class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder-gray-400"
+                    placeholder="e.g. 5+ years of experience with Python..."></textarea>
+            </div>
+
+            <div>
+                <label for="salary" class="block text-sm font-semibold text-gray-700 mb-1">Salary Range
+                    (Optional)</label>
+                <input type="text" id="salary" name="salary"
+                    class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder-gray-400"
+                    placeholder="e.g. $120,000 - $150,000">
+            </div>
+
+            <div>
+                <label for="hr_assignee" class="block text-sm font-semibold text-gray-700 mb-1">Assign HR Representative
+                    (Optional)</label>
+                <select id="hr_assignee" name="hr_assignee"
+                    class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-gray-700">
+                    <option value="">-- Do not assign yet --</option>
+                    {% for hr in hr_users %}
+                    <option value="{{ hr.id }}">{{ hr.get_full_name|default:hr.username }}</option>
+                    {% endfor %}
+                </select>
+                <p class="text-xs text-gray-500 mt-2">The selected HR will manage candidates in the final Level 3
+                    interview.</p>
+            </div>
+
+            <div>
+                <label for="deadline" class="block text-sm font-semibold text-gray-700 mb-1">Application
+                    Deadline</label>
+                <input type="date" id="deadline" name="deadline"
+                    class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-gray-700">
+            </div>
+
+            <div class="pt-4 flex items-center justify-between border-t border-gray-100 mt-6">
+                <a href="{% url 'jobs:list' %}"
+                    class="text-gray-500 font-medium hover:text-gray-700 transition">Cancel</a>
+                <button type="submit"
+                    class="bg-blue-600 text-white px-8 py-3.5 rounded-xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 hover:-translate-y-0.5 transition-all text-lg flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    Publish Job
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

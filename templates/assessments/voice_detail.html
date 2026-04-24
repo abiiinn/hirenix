@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}Voice Interview Detailed Transcripts - Hirenix{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto mt-8">
+    <div class="mb-8 flex justify-between items-end">
+        <div>
+            <a href="{% url 'jobs:rankings' app.job.id %}"
+                class="text-blue-600 hover:text-blue-800 text-sm font-semibold mb-2 inline-flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Back to Applicants
+            </a>
+            <h1 class="text-3xl font-bold text-gray-900 mb-1">Level 2 Voice Interview: {{ app.candidate.username }}</h1>
+            <p class="text-gray-500">Job: {{ app.job.title }}</p>
+        </div>
+        <div class="text-right">
+            <span class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-bold
+                {% if interview.passed %}bg-emerald-100 text-emerald-800{% else %}bg-red-100 text-red-800{% endif %}">
+                {% if interview.passed %}PASSED{% else %}FAILED{% endif %}
+            </span>
+        </div>
+    </div>
+
+    <!-- Overall Score -->
+    <div
+        class="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm mb-8 flex justify-between items-center bg-gray-50">
+        <div class="text-center w-1/3 border-r border-gray-300">
+            <p class="text-sm font-semibold text-indigo-600 uppercase tracking-wider mb-1">Overall Fluency</p>
+            <p class="text-4xl font-extrabold text-gray-900">{{ interview.overall_fluency }}%</p>
+        </div>
+        <div class="text-center w-1/3 border-r border-gray-300">
+            <p class="text-sm font-semibold text-purple-600 uppercase tracking-wider mb-1">Overall Confidence</p>
+            <p class="text-4xl font-extrabold text-gray-900">{{ interview.overall_confidence }}%</p>
+        </div>
+        <div class="text-center w-1/3">
+            <p class="text-sm font-semibold text-blue-600 uppercase tracking-wider mb-1">Technical Accuracy</p>
+            <p class="text-4xl font-extrabold text-gray-900">{{ interview.overall_technical_score }}%</p>
+        </div>
+    </div>
+
+    <h2 class="text-2xl font-bold text-gray-900 mb-6">Question Responses</h2>
+
+    <div class="space-y-6">
+        {% for response in responses %}
+        <div class="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm">
+            <div class="flex justify-between items-start mb-4">
+                <h3 class="text-lg font-bold text-gray-900">
+                    <span class="text-indigo-600 mr-2">Q{{ response.question_number }}.</span>
+                    {{ response.question_text }}
+                </h3>
+                <div class="flex gap-2">
+                    <span
+                        class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded border border-indigo-100 font-semibold"
+                        title="Word Per Minute Fluency">Fluency: {{ response.fluency_score|floatformat:0 }}</span>
+                    <span
+                        class="text-xs bg-purple-50 text-purple-700 px-2 py-1 rounded border border-purple-100 font-semibold"
+                        title="Pause Ratio Confidence">Confidence: {{ response.confidence_score|floatformat:0 }}</span>
+                    {% if response.is_technical %}
+                    <span
+                        class="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-100 font-semibold"
+                        title="TF-IDF Match">Tech: {{ response.technical_score|floatformat:0 }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if response.is_technical %}
+            <div class="mb-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Expected Concept / Answer</h4>
+                <p class="text-sm text-gray-700">{{ response.expected_answer }}</p>
+            </div>
+            {% endif %}
+
+            <div class="mb-6">
+                <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Candidate's Transcript</h4>
+                {% if response.transcription %}
+                <p
+                    class="text-gray-900 bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 italic leading-relaxed text-lg">
+                    "{{ response.transcription }}"</p>
+                {% else %}
+                <p class="text-gray-400 italic">No audio was transcribed.</p>
+                {% endif %}
+            </div>
+
+            {% if response.audio_file %}
+            <div>
+                <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Original Audio</h4>
+                <audio controls class="w-full h-10">
+                    <source src="{{ response.audio_file.url }}" type="audio/webm">
+                    Your browser does not support the audio element.
+                </audio>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

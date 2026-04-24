@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="py-16 text-center">
+    <h1 class="text-5xl font-extrabold text-gray-900 mb-6 tracking-tight">
+        Next-Generation <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">AI
+            Hiring</span>
+    </h1>
+    <p class="text-xl text-gray-600 max-w-2xl mx-auto mb-10">
+        Hirenix uses advanced AI to screen resumes, evaluate skills, and analyze voice interviews,
+        giving you the ultimate, unbiased recruitment pipeline.
+    </p>
+
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        {% if user.is_authenticated %}
+        {% if user.role == 'COMPANY' %}
+        <a href="{% url 'jobs:create' %}"
+            class="bg-blue-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all text-lg">Post
+            a Job</a>
+        <a href="{% url 'dashboard' %}"
+            class="bg-white text-blue-600 border border-blue-200 px-8 py-3 rounded-full font-semibold hover:bg-blue-50 transition-all text-lg">Dashboard</a>
+        {% elif user.role == 'CANDIDATE' %}
+        <a href="{% url 'jobs:list' %}"
+            class="bg-indigo-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all text-lg">Explore
+            Jobs</a>
+        <a href="{% url 'users:profile' %}"
+            class="bg-white text-indigo-600 border border-indigo-200 px-8 py-3 rounded-full font-semibold hover:bg-indigo-50 transition-all text-lg">Update
+            Profile</a>
+        {% else %}
+        <a href="{% url 'dashboard' %}"
+            class="bg-blue-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all text-lg">Go
+            to Dashboard</a>
+        {% endif %}
+        {% else %}
+        <a href="{% url 'users:register' %}"
+            class="bg-blue-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all text-lg hover:-translate-y-0.5">Get
+            Started Free</a>
+        <a href="{% url 'users:login' %}"
+            class="bg-white text-gray-700 border border-gray-200 px-8 py-3 rounded-full font-semibold hover:bg-gray-50 transition-all text-lg hover:-translate-y-0.5">Sign
+            In</a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="grid md:grid-cols-3 gap-8 mt-16 max-w-6xl mx-auto text-left">
+    <div
+        class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300">
+        <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-inner">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                </path>
+            </svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 mb-3">Smart ATS</h3>
+        <p class="text-gray-500 leading-relaxed">Instantly parse and score resumes using natural language processing to
+            find the best match for your job requirements without human bias.</p>
+    </div>
+
+    <div
+        class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300">
+        <div
+            class="w-14 h-14 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mb-6 shadow-inner">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
+                </path>
+            </svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 mb-3">Domain AI Quizzes</h3>
+        <p class="text-gray-500 leading-relaxed">Dynamically generated domain-specific MCQ tests ensuring candidates
+            have the core technical knowledge needed before advancing.</p>
+    </div>
+
+    <div
+        class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300">
+        <div
+            class="w-14 h-14 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center mb-6 shadow-inner">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z">
+                </path>
+            </svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 mb-3">Voice Analysis</h3>
+        <p class="text-gray-500 leading-relaxed">Automated Level 2 voice interviews analyzed locally for fluency,
+            confidence, and pause-duration metrics to gauge communication skills.</p>
+    </div>
+</div>
+{% endblock %}

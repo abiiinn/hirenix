@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ job.title }} - Hirenix{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Back btn -->
+    <a href="{% url 'jobs:list' %}"
+        class="inline-flex items-center gap-2 text-gray-500 hover:text-blue-600 transition mb-6 font-medium">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        Back to Jobs
+    </a>
+
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-8">
+        <!-- Header -->
+        <div class="p-8 border-b border-gray-100 bg-gradient-to-b from-slate-50 to-white">
+            <div class="flex flex-col md:flex-row md:items-start justify-between gap-6">
+                <div class="flex items-center gap-5">
+                    <div
+                        class="w-20 h-20 rounded-2xl bg-white border border-gray-100 shadow-sm flex items-center justify-center font-bold text-3xl text-gray-600 overflow-hidden shrink-0">
+                        {% if job.company.company_profile.logo %}
+                        <img src="{{ job.company.company_profile.logo.url }}" class="w-full h-full object-cover">
+                        {% else %}
+                        {{ job.company.company_profile.company_name.0|upper|default:job.company.username.0|upper }}
+                        {% endif %}
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900 mb-1">{{ job.title }}</h1>
+                        <p class="text-xl text-blue-600 font-medium">
+                            {% if job.company.company_profile %}
+                            <span>{{ job.company.company_profile.company_name }}</span>
+                            {% else %}
+                            <span>{{ job.company.username }}</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="shrink-0 flex items-center justify-start md:justify-end">
+                    {% if user.role == 'CANDIDATE' %}
+                    {% if job.is_expired %}
+                    <span class="inline-flex items-center gap-2 bg-red-100 text-red-700 px-6 py-3 rounded-xl font-bold">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Expired
+                    </span>
+                    {% elif has_applied %}
+                    <span
+                        class="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 px-6 py-3 rounded-xl font-bold">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
+                            </path>
+                        </svg>
+                        Applied
+                    </span>
+                    {% else %}
+                    <button onclick="document.getElementById('applyModal').classList.remove('hidden')"
+                        class="bg-blue-600 text-white px-8 py-3.5 rounded-xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 hover:-translate-y-0.5 transition-all text-lg">
+                        Apply Now
+                    </button>
+                    {% endif %}
+                    {% elif not user.is_authenticated %}
+                    <a href="{% url 'users:login' %}?next={{ request.path }}"
+                        class="bg-blue-600 text-white px-8 py-3.5 rounded-xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 hover:-translate-y-0.5 transition-all inline-block text-lg">
+                        Login to Apply
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-6 mt-8 pt-6 border-t border-gray-200">
+                <div class="flex items-center gap-2.5 text-gray-700">
+                    <div
+                        class="flex items-center gap-2 text-gray-500 bg-gray-50 px-4 py-2 rounded-xl text-sm font-medium">
+                        <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                            </path>
+                        </svg>
+                        {{ job.salary|default:"Not specified" }}
+                    </div>
+
+                    {% if job.deadline %}
+                    <div
+                        class="flex items-center gap-2 text-red-600 bg-red-50 px-4 py-2 rounded-xl text-sm font-bold border border-red-100">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Deadline: <span>{{ job.deadline|date:"M d, Y" }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="flex items-center gap-2.5 text-gray-700">
+                    <div class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                            </path>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase tracking-wide font-semibold">Posted</p>
+                        <span class="font-bold">{{ job.created_at|timesince }} ago</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2.5 text-gray-700">
+                    <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase tracking-wide font-semibold">Status</p>
+                        <span class="font-bold">{{ job.get_status_display }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="p-8">
+            <div class="prose max-w-none text-gray-700 text-lg">
+                <h3 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Job Description
+                </h3>
+                <div class="mb-10 whitespace-pre-wrap leading-relaxed">{{ job.description }}</div>
+
+                <h3 class="text-2xl font-bold text-gray-900 mb-4 pt-8 border-t border-gray-100 flex items-center gap-2">
+                    <svg class="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01">
+                        </path>
+                    </svg>
+                    Requirements
+                </h3>
+                <div class="whitespace-pre-wrap leading-relaxed">{{ job.requirements }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Apply Modal -->
+{% if user.role == 'CANDIDATE' and not has_applied %}
+<div id="applyModal"
+    class="hidden fixed inset-0 bg-gray-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden relative transform transition-all">
+        <!-- Decoration -->
+        <div class="h-32 bg-gradient-to-r from-blue-600 to-indigo-600 absolute top-0 left-0 right-0"></div>
+
+        <button onclick="document.getElementById('applyModal').classList.add('hidden')"
+            class="absolute top-4 right-4 text-white/80 hover:text-white bg-black/10 hover:bg-black/20 rounded-full p-2 transition z-10 w-10 h-10 flex items-center justify-center">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+
+        <div class="pt-24 px-8 pb-8 relative z-0">
+            <div
+                class="w-20 h-20 bg-white rounded-2xl shadow-xl flex items-center justify-center -mt-32 mb-6 border-4 border-white">
+                <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
+                    </path>
+                </svg>
+            </div>
+
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">Apply for {{ job.title }}</h2>
+            <p class="text-gray-500 mb-8 border-b border-gray-100 pb-6 text-lg">Your profile resume will be submitted to
+                the company. Our ATS will automatically parse and match your skills.</p>
+
+            {% if user.candidate_profile.resume %}
+            <form method="POST" action="{% url 'jobs:apply' job.pk %}" class="space-y-6">
+                {% csrf_token %}
+
+                <div class="bg-blue-50 border border-blue-100 rounded-2xl p-6 flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z">
+                                </path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="font-bold text-gray-900">Resume Attached</p>
+                            <a href="{{ user.candidate_profile.resume.url }}" target="_blank"
+                                class="text-sm text-blue-600 hover:underline">View Document</a>
+                        </div>
+                    </div>
+                    <a href="{% url 'users:profile' %}"
+                        class="text-sm font-semibold text-gray-500 hover:text-gray-900 border border-gray-200 px-3 py-1.5 rounded-lg bg-white">Update
+                        Resume</a>
+                </div>
+
+
+
+                <div class="pt-2">
+                    <button type="submit"
+                        class="w-full bg-blue-600 text-white px-6 py-4 rounded-xl font-bold text-lg shadow-lg shadow-blue-200 hover:bg-blue-700 transition active:scale-[0.98]">
+                        Submit Application
+                    </button>
+                </div>
+            </form>
+            {% else %}
+            <div class="text-center py-8">
+                <div
+                    class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                        </path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">Resume Missing</h3>
+                <p class="text-gray-500 mb-6">You need to upload a resume to your profile before you can apply for jobs.
+                </p>
+                <a href="{% url 'users:profile' %}"
+                    class="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold shadow-md shadow-blue-200 hover:bg-blue-700 transition inline-block">Go
+                    to My Profile</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

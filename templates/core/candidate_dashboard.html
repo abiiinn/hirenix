@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block title %}My Applications - Hirenix{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">My Applications</h1>
+        <p class="text-gray-500">Track your progress and take assessments</p>
+    </div>
+
+    <!-- Applications List -->
+    <h2 class="text-2xl font-bold text-gray-900 mb-6">Track My Applications</h2>
+    <div class="grid gap-6">
+        {% for app in applications %}
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col md:flex-row">
+            <div class="p-6 border-b md:border-b-0 md:border-r border-gray-100 flex-grow">
+                <div class="flex items-center gap-4 mb-3">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center font-bold text-xl text-gray-600 overflow-hidden shrink-0">
+                        {% if app.job.company.company_profile.logo %}
+                        <img src="{{ app.job.company.company_profile.logo.url }}" class="w-full h-full object-cover">
+                        {% else %}
+                        <span>{{
+                            app.job.company.company_profile.company_name.0|upper|default:app.job.company.username.0|upper
+                            }}</span>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-xl text-gray-900"><a href="{% url 'jobs:detail' app.job.pk %}"
+                                class="hover:text-blue-600 transition">{{ app.job.title }}</a></h3>
+                        <p class="text-sm text-gray-500">
+                            {% if app.job.company.company_profile %}
+                            {{ app.job.company.company_profile.company_name }}
+                            {% else %}
+                            {{ app.job.company.username }}
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-6 mt-4 text-sm text-gray-500">
+                    <span class="flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                            </path>
+                        </svg>
+                        Applied {{ app.created_at|date:"M d, Y" }}
+                    </span>
+                    <span class="flex items-center gap-1.5 focus:outline-none">
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Current Status: <strong class="text-gray-900 ml-1">{{ app.get_status_display }}</strong>
+                    </span>
+                    <span class="flex items-center gap-1.5 ml-auto md:ml-0">
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                            </path>
+                        </svg>
+                        ATS Match: <strong class="text-blue-600 ml-1">{{ app.ats_score }}%</strong>
+                    </span>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 p-6 md:w-80 flex flex-col justify-center shrink-0">
+                {% if app.status == 'LEVEL1_PENDING' %}
+                <div class="text-center mb-4 text-sm text-gray-600">You've unlocked Level 1!</div>
+                <a href="{% url 'assessments:mcq_test' app.id %}"
+                    class="w-full bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-md shadow-blue-200 text-center inline-block">
+                    Take Domain MCQ Test
+                </a>
+                {% elif app.status == 'LEVEL2_PENDING' %}
+                <div class="text-center mb-4 text-sm text-gray-600">Great job passing Level 1!</div>
+                <a href="{% url 'assessments:voice_test' app.id %}"
+                    class="w-full bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 transition shadow-md shadow-indigo-200 text-center inline-block">
+                    Start Voice Interview
+                </a>
+                {% elif app.status == 'LEVEL3_PENDING' %}
+                <div class="text-center">
+                    <div
+                        class="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm text-yellow-500">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <p class="text-sm font-medium text-gray-700">Awaiting HR Interview Schedule</p>
+                    {% if app.hr_meet_link %}
+                    <a href="{{ app.hr_meet_link }}" target="_blank"
+                        class="mt-3 w-full bg-white border border-gray-200 text-blue-600 px-6 py-2.5 rounded-xl font-bold hover:bg-gray-50 transition shadow-sm text-center inline-block">
+                        Join Meeting Link
+                    </a>
+                    {% endif %}
+                </div>
+                {% elif app.status == 'HIRED' %}
+                <div class="text-center">
+                    <div
+                        class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
+                            </path>
+                        </svg>
+                    </div>
+                    <p class="text-emerald-700 font-bold text-lg">Congratulations!</p>
+                    <p class="text-emerald-600 text-sm">You've been Hired!</p>
+                </div>
+                {% elif 'REJECTED' in app.status or 'FAILED' in app.status %}
+                <div class="text-center">
+                    <div
+                        class="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <p class="text-red-600 font-medium text-sm">Application Rejected</p>
+                </div>
+                {% else %}
+                <div class="text-center">
+                    <p class="text-gray-500 font-medium text-sm">Application under review by ATS or Recruiter.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-300">
+            <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                </path>
+            </svg>
+            <h3 class="text-xl font-medium text-gray-900 mb-2">No applications yet</h3>
+            <p class="text-gray-500 mb-6">Start exploring jobs and apply to see your tracking here.</p>
+            <a href="{% url 'jobs:list' %}"
+                class="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition inline-block">Browse
+                Jobs</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

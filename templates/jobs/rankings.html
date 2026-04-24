@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ job.title }} Rankings - Hirenix{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <div class="flex items-center gap-3 mb-2">
+                <a href="{% url 'dashboard' %}" class="text-gray-400 hover:text-gray-600 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                </a>
+                <h1 class="text-3xl font-bold text-gray-900">Applicant Rankings</h1>
+            </div>
+            <p class="text-gray-500 ml-8">
+                Based on AI MCQ and ATS Scores for
+                <b class="text-gray-700"><span>{{ job.title }}</span></b>
+            </p>
+        </div>
+        <div class="bg-blue-50 text-blue-700 px-4 py-2 rounded-xl text-sm font-bold border border-blue-100 shadow-sm">
+            Total Applicants: {{ ranked_apps|length }}
+        </div>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        <table class="w-full text-left">
+            <thead class="bg-gray-50/80 border-b border-gray-200">
+                <tr>
+                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Rank</th>
+                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Candidate</th>
+                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">AI Level 1 (MCQ)</th>
+                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">AI ATS Match</th>
+                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Current Status</th>
+                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for app in ranked_apps %}
+                <tr class="hover:bg-gray-50/50 transition relative group">
+                    <td class="px-6 py-5 whitespace-nowrap">
+                        <div
+                            class="flex items-center justify-center w-8 h-8 rounded-full {% if app.rank_position == 1 %}bg-yellow-100 text-yellow-700 border border-yellow-200{% elif app.rank_position == 2 %}bg-gray-200 text-gray-700 border border-gray-300{% elif app.rank_position == 3 %}bg-amber-100 text-amber-800 border border-amber-200{% else %}bg-gray-50 text-gray-500 border border-gray-100{% endif %} font-bold text-sm">
+                            #{{ app.rank_position }}
+                        </div>
+                    </td>
+                    <td class="px-6 py-5">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold font-serif text-sm border border-blue-200 shadow-sm">
+                                {{ app.candidate.username.0|upper }}
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-gray-900">{{ app.candidate.username }}</p>
+                                <p class="text-xs text-gray-500">{{ app.created_at|date:"M d, Y" }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-5 whitespace-nowrap">
+                        {% if app.mcq_score > 0 %}
+                        <div class="flex items-center gap-2">
+                            <div class="w-full bg-gray-100 rounded-full h-2 max-w-[100px]">
+                                <div class="h-2 rounded-full {% if app.mcq_score >= 80 %}bg-emerald-500{% elif app.mcq_score >= 60 %}bg-blue-500{% else %}bg-red-500{% endif %}"
+                                    style="width: {{ app.mcq_score }}%"></div>
+                            </div>
+                            <span class="text-sm font-bold text-gray-700">{{ app.mcq_score|floatformat:1 }}%</span>
+                        </div>
+                        {% else %}
+                        <span class="text-xs text-gray-400 font-medium italic">Pending First Level</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-5 whitespace-nowrap">
+                        <div class="flex items-center gap-2">
+                            <div class="w-full bg-gray-100 rounded-full h-2 max-w-[80px]">
+                                <div class="h-2 rounded-full {% if app.ats_score >= 70 %}bg-emerald-500{% elif app.ats_score >= 40 %}bg-amber-500{% else %}bg-red-500{% endif %}"
+                                    style="width: {{ app.ats_score }}%"></div>
+                            </div>
+                            <span class="text-sm font-bold text-gray-600">{{ app.ats_score|floatformat:1 }}%</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-5 whitespace-nowrap">
+                        <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full 
+                            {% if app.status == 'HIRED' %}bg-emerald-100 text-emerald-800 border border-emerald-200
+                            {% elif app.status == 'REJECTED' or app.status == 'ATS_REJECTED' %}bg-red-100 text-red-800 border border-red-200
+                            {% else %}bg-blue-50 text-blue-700 border border-blue-100{% endif %}">
+                            {{ app.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-5 text-right whitespace-nowrap text-sm font-medium">
+                        {% if app.candidate.candidate_profile.resume %}
+                        <a href="{{ app.candidate.candidate_profile.resume.url }}" target="_blank"
+                            class="text-blue-600 hover:text-blue-900 border border-blue-100 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition shadow-sm font-bold truncate">View
+                            Resume</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                        <div class="flex flex-col items-center justify-center pb-4">
+                            <svg class="w-12 h-12 text-gray-300 mb-3" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
+                                </path>
+                            </svg>
+                            <p class="font-bold text-gray-600">No applicants yet</p>
+                            <p class="text-sm mt-1">Wait for candidates to apply.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

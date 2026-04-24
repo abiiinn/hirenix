@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}Explore Jobs - Hirenix{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <div class="flex justify-between items-end mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Explore Opportunities</h1>
+            <p class="text-gray-500">Find your next role powered by AI matching</p>
+        </div>
+
+        <form method="GET" action="{% url 'jobs:list' %}" class="flex gap-2">
+            <input type="text" name="q" value="{{ query|default:'' }}" placeholder="Search by title or company..."
+                class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 w-64">
+            <button type="submit"
+                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Search</button>
+        </form>
+    </div>
+
+    {% if jobs %}
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for job in jobs %}
+        <div
+            class="bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition flex flex-col h-full relative group">
+            <div
+                class="absolute inset-0 bg-gradient-to-br from-blue-50 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition duration-300 -z-10">
+            </div>
+            <div class="flex items-start gap-4 mb-4">
+                <div
+                    class="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center font-bold text-xl text-gray-600 overflow-hidden shrink-0">
+                    {% if job.company.company_profile.logo %}
+                    <img src="{{ job.company.company_profile.logo.url }}" class="w-full h-full object-cover">
+                    {% else %}
+                    {{ job.company.company_profile.company_name.0|upper|default:job.company.username.0|upper }}
+                    {% endif %}
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg text-gray-900 line-clamp-1" title="{{ job.title }}">
+                        <span>{{ job.title }}</span>
+                    </h3>
+                    <p class="text-sm text-gray-500 font-medium">
+                        <span>{{ job.company.company_profile.company_name|default:job.company.username }}</span>
+                    </p>
+                </div>
+            </div>
+
+            <p class="text-gray-600 text-sm mb-6 line-clamp-3 ext-ellipsis">{{ job.description }}</p>
+
+            <div class="mt-auto flex items-center justify-between border-t border-gray-100 pt-4">
+                <div class="flex items-center gap-2">
+                    <span class="text-sm font-semibold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
+                        <span>{{ job.salary|default:"Not specified" }}</span>
+                    </span>
+                    {% if job.is_expired %}
+                    <span class="text-sm font-semibold text-red-600 bg-red-50 px-3 py-1 rounded-full">Expired</span>
+                    {% endif %}
+                </div>
+                <a href="{% url 'jobs:detail' job.pk %}"
+                    class="text-blue-600 font-medium hover:text-blue-800 transition flex items-center gap-1">
+                    View Details
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-300">
+        <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+            </path>
+        </svg>
+        <h3 class="text-xl font-medium text-gray-900 mb-1">No jobs found</h3>
+        <p class="text-gray-500">Check back later or adjust your search.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

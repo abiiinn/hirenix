@@ -1,0 +1,318 @@
+{% extends 'base.html' %}
+
+{% block title %}Level 2 Voice Interview - Hirenix{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto mt-8">
+    <div class="text-center mb-10">
+        <div
+            class="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z">
+                </path>
+            </svg>
+        </div>
+        <h1 class="text-4xl font-extrabold text-gray-900 mb-2">Level 2: AI Voice Interview</h1>
+        <p class="text-lg text-gray-500 max-w-2xl mx-auto">Question {{ question.question_number }} of 5. Please answer
+            the prompt below clearly.</p>
+
+        <div class="mt-6 w-full max-w-md mx-auto bg-gray-200 rounded-full h-2.5">
+            <div class="bg-indigo-600 h-2.5 rounded-full transition-all duration-500" style="width: {{ progress }}%">
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white p-10 rounded-3xl border border-gray-200 shadow-xl text-center relative overflow-hidden">
+        <!-- Decoration -->
+        <div
+            class="absolute -top-24 -right-24 w-48 h-48 bg-gradient-to-br from-indigo-100 to-purple-50 rounded-full opacity-50 blur-3xl">
+        </div>
+        <div
+            class="absolute -bottom-24 -left-24 w-48 h-48 bg-gradient-to-tr from-blue-100 to-cyan-50 rounded-full opacity-50 blur-3xl">
+        </div>
+
+        <div class="relative z-10">
+            <h3 class="text-sm font-bold text-indigo-600 uppercase tracking-widest mb-4">
+                Prompt <span>{{ question.question_number }}</span>
+            </h3>
+            <div class="bg-indigo-50/50 border border-indigo-100 p-8 rounded-2xl mb-10 max-w-2xl mx-auto">
+                <p class="text-2xl font-semibold text-gray-900 leading-snug">"{{ question.question_text }}"</p>
+            </div>
+
+            <div class="flex flex-col items-center justify-center gap-6 mb-8">
+                <!-- Recording Animation -->
+                <div id="recording-indicator" class="hidden">
+                    <div class="relative flex items-center justify-center w-24 h-24">
+                        <span
+                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <div
+                            class="relative inline-flex rounded-full h-16 w-16 bg-red-500 items-center justify-center text-white shadow-lg">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z">
+                                </path>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-red-500 font-bold mt-4 animate-pulse">Recording... Speak now</p>
+                    <p id="timer" class="text-gray-500 font-medium text-lg mt-1">00:00</p>
+                </div>
+
+                <div id="controls-section" class="flex gap-4">
+                    <button id="recordButton"
+                        class="bg-red-500 text-white px-8 py-4 rounded-2xl font-bold shadow-lg shadow-red-200 hover:bg-red-600 transition-all flex items-center gap-3 text-lg hover:scale-105 active:scale-95">
+                        <div class="w-4 h-4 rounded-full bg-white"></div>
+                        Start Recording
+                    </button>
+                    <button id="stopButton"
+                        class="hidden bg-gray-800 text-white px-8 py-4 rounded-2xl font-bold shadow-lg hover:bg-gray-900 transition-all flex items-center gap-3 text-lg hover:scale-105 active:scale-95">
+                        <div class="w-4 h-4 rounded-sm bg-red-500"></div>
+                        Stop Recording
+                    </button>
+                </div>
+            </div>
+
+            <form id="voice-form" method="POST" action="{% url 'assessments:voice_submit' app.id %}"
+                enctype="multipart/form-data" class="hidden max-w-md mx-auto">
+                {% csrf_token %}
+                <input type="hidden" name="question_id" value="{{ question.id }}">
+                <div class="bg-emerald-50 border border-emerald-200 p-6 rounded-2xl mb-6">
+                    <svg class="w-10 h-10 text-emerald-500 mx-auto mb-2" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <h4 class="text-lg font-bold text-gray-900 mb-1">Recording Captured!</h4>
+                    <p class="text-sm text-gray-600 mb-4">You can play it back to check the quality.</p>
+                    <audio id="audioPlayback" controls class="w-full"></audio>
+                </div>
+
+                <input type="file" id="audioData" name="audio_data" class="hidden">
+                <div class="flex gap-4">
+                    <button type="button" id="redoButton"
+                        class="w-1/3 bg-white border-2 border-gray-200 text-gray-700 py-3.5 rounded-xl font-bold hover:bg-gray-50 transition-all">
+                        Redo
+                    </button>
+                    <button type="submit" id="submitButton"
+                        class="w-2/3 bg-indigo-600 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all text-lg flex justify-center items-center gap-2">
+                        <span>
+                            {% if question.question_number == 5 %}
+                            Finish Interview
+                            {% else %}
+                            Next Question
+                            {% endif %}
+                        </span>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Anti-Cheat Webcam Modal -->
+    <div id="webcam-container"
+        class="fixed bottom-4 right-4 w-48 h-36 bg-gray-900 rounded-lg border-2 border-red-500 overflow-hidden shadow-2xl z-50 flex items-center justify-center">
+        <video id="webcam-video" autoplay playsinline muted
+            class="w-full h-full object-cover transform -scale-x-100"></video>
+        <div id="camera-warning" class="absolute text-white text-xs font-bold text-center p-2 hidden">Camera Mandatory
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let mediaRecorder;
+    let audioChunks = [];
+    let timerInterval;
+    let seconds = 0;
+
+    const recordButton = document.getElementById('recordButton');
+    const stopButton = document.getElementById('stopButton');
+    const redoButton = document.getElementById('redoButton');
+    const audioPlayback = document.getElementById('audioPlayback');
+    const audioDataInput = document.getElementById('audioData');
+    const voiceForm = document.getElementById('voice-form');
+    const controlsSection = document.getElementById('controls-section');
+    const recordingIndicator = document.getElementById('recording-indicator');
+    const timerDisplay = document.getElementById('timer');
+    const submitButton = document.getElementById('submitButton');
+
+    const stopRecordingAndSubmit = () => {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+            // Stop tracks to release mic
+            mediaRecorder.stream.getTracks().forEach(track => track.stop());
+            clearInterval(timerInterval);
+
+            stopButton.classList.add('hidden');
+            controlsSection.classList.add('hidden');
+
+            // Auto submit after a brief pause to allow the Blob to fire its onstop event
+            setTimeout(() => {
+                voiceForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+            }, 500);
+        }
+    };
+
+    function updateTimer() {
+        seconds++;
+        const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+        const secs = (seconds % 60).toString().padStart(2, '0');
+        timerDisplay.textContent = `${mins}:${secs}`;
+
+        if (seconds >= 60) {
+            stopRecordingAndSubmit();
+        }
+    }
+
+    recordButton.addEventListener('click', async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+            // Prefer webm which is well supported in browsers
+            const options = { mimeType: 'audio/webm' };
+            mediaRecorder = new MediaRecorder(stream, options);
+
+            mediaRecorder.ondataavailable = event => {
+                if (event.data.size > 0) {
+                    audioChunks.push(event.data);
+                }
+            };
+
+            mediaRecorder.onstop = () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                const audioUrl = URL.createObjectURL(audioBlob);
+                audioPlayback.src = audioUrl;
+
+                // Store global blob so we can append it directly in fetch
+                window.recordedAudioBlob = audioBlob;
+
+                recordingIndicator.classList.add('hidden');
+                voiceForm.classList.remove('hidden');
+            };
+
+            audioChunks = [];
+            mediaRecorder.start();
+
+            // UI Updates
+            recordButton.classList.add('hidden');
+            stopButton.classList.remove('hidden');
+            recordingIndicator.classList.remove('hidden');
+
+            seconds = 0;
+            timerDisplay.textContent = "00:00";
+            timerInterval = setInterval(updateTimer, 1000);
+
+        } catch (err) {
+            alert('Please allow microphone access to proceed with the interview.');
+            console.error(err);
+        }
+    });
+
+    stopButton.addEventListener('click', stopRecordingAndSubmit);
+
+    redoButton.addEventListener('click', () => {
+        voiceForm.classList.add('hidden');
+        controlsSection.classList.remove('hidden');
+        recordButton.classList.remove('hidden');
+        audioDataInput.value = '';
+        audioPlayback.src = '';
+    });
+
+    voiceForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Change submit button to loading state
+        submitButton.innerHTML = `
+            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Analyzing Audio...
+        `;
+        submitButton.disabled = true;
+        submitButton.classList.add('opacity-75', 'cursor-not-allowed');
+
+        const formData = new FormData(voiceForm);
+        // Explicitly append the blob instead of relying on the hidden file input
+        if (window.recordedAudioBlob) {
+            formData.set('audio_data', window.recordedAudioBlob, 'interview.webm');
+        }
+
+        try {
+            const response = await fetch(voiceForm.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            });
+
+            if (response.redirected) {
+                window.location.href = response.url;
+            } else if (response.ok) {
+                window.location.reload();
+            } else {
+                alert("Error submitting audio. Please try again.");
+                submitButton.innerHTML = "Retry Submission";
+                submitButton.disabled = false;
+                submitButton.classList.remove('opacity-75', 'cursor-not-allowed');
+            }
+        } catch (error) {
+            alert("Network error. Please try again.");
+            submitButton.innerHTML = "Retry Submission";
+            submitButton.disabled = false;
+            submitButton.classList.remove('opacity-75', 'cursor-not-allowed');
+        }
+    });
+
+    // --- ANTI-CHEAT LOGIC ---
+    let cheatWarnings = 0;
+    const MAX_WARNINGS = 3;
+
+    document.addEventListener("visibilitychange", function () {
+        if (document.hidden) {
+            cheatWarnings++;
+            if (cheatWarnings >= MAX_WARNINGS) {
+                alert("SECURITY VIOLATION! You have switched tabs too many times. Your assessment will now auto-submit and fail.");
+                if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                    stopRecordingAndSubmit();
+                } else {
+                    // Force a dummy fail submission or just let them stay blocked
+                    // We can simulate an empty blob submission to fail them
+                    const emptyBlob = new Blob([], { type: 'audio/webm' });
+                    window.recordedAudioBlob = emptyBlob;
+                    voiceForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+                }
+            } else {
+                alert(`SECURITY WARNING (${cheatWarnings}/${MAX_WARNINGS}): Please do not switch tabs or leave this window. Doing so again will lead to disqualification.`);
+            }
+        }
+    });
+
+    async function startWebcam() {
+        const video = document.getElementById('webcam-video');
+        const warning = document.getElementById('camera-warning');
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+        } catch (err) {
+            console.error("Camera access denied", err);
+            video.style.display = 'none';
+            warning.classList.remove('hidden');
+            alert("Camera access is MANDATORY for this assessment. Please allow camera permissions and refresh the page.");
+            document.getElementById('recordButton').disabled = true;
+            document.getElementById('recordButton').classList.add('opacity-50', 'cursor-not-allowed');
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        startWebcam();
+    });
+</script>
+{% endblock %}
