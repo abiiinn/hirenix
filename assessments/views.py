@@ -258,6 +258,11 @@ def submit_voice_test(request, app_id):
         messages.error(request, "No audio data received.")
         return redirect('assessments:voice_test', app_id=app.id)
 
+    # Basic backend enforcement of ~1 minute (limit file to 2.5MB)
+    if audio_file.size > 2.5 * 1024 * 1024:
+        messages.error(request, "Audio file is too large. Please keep your answer under 1 minute.")
+        return redirect('assessments:voice_test', app_id=app.id)
+
     # Save to a temporary webm file
     temp_dir = os.path.join(settings.MEDIA_ROOT, 'temp_voice')
     os.makedirs(temp_dir, exist_ok=True)
@@ -268,6 +273,12 @@ def submit_voice_test(request, app_id):
     with open(webm_path, 'wb+') as destination:
         for chunk in audio_file.chunks():
             destination.write(chunk)
+            
+    # CRITICAL FIX: Save the audio file immediately.
+    # This ensures the 'audio_file' field is populated, so the interview
+    # state advances to the next question even if AI transcription fails.
+    question.audio_file = audio_file
+    question.save()
             
     try:
         # Convert webm to wav since Vosk needs wav
@@ -295,8 +306,7 @@ def submit_voice_test(request, app_id):
             technical_score = min(keyword_score + length_score, 100.0)
             print(f"Candidate scored {technical_score} on Tech Q. Keywords: {skills_mentioned}, Length: {word_count}")
                 
-        # Save Question Record
-        question.audio_file = audio_file
+        # Update Question Record with scores
         question.transcription = transcription
         question.fluency_score = fluency_score
         question.confidence_score = confidence_score
@@ -304,7 +314,7 @@ def submit_voice_test(request, app_id):
         question.save()
         
     except Exception as e:
-        messages.error(request, f"Error processing audio: {str(e)}")
+        messages.warning(request, "Audio saved successfully, but AI analysis experienced a temporary issue.")
         print(f"Audio processing error: {e}")
     finally:
         if os.path.exists(webm_path):

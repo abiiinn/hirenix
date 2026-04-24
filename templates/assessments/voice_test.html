@@ -56,7 +56,7 @@
                         </div>
                     </div>
                     <p class="text-red-500 font-bold mt-4 animate-pulse">Recording... Speak now</p>
-                    <p id="timer" class="text-gray-500 font-medium text-lg mt-1">00:00</p>
+                    <p id="timer" class="text-gray-500 font-bold text-xl mt-1">01:00</p>
                 </div>
 
                 <div id="controls-section" class="flex gap-4">
@@ -129,7 +129,7 @@
     let mediaRecorder;
     let audioChunks = [];
     let timerInterval;
-    let seconds = 0;
+    let timeLeft = 60; // 1 minute limit
 
     const recordButton = document.getElementById('recordButton');
     const stopButton = document.getElementById('stopButton');
@@ -160,12 +160,17 @@
     };
 
     function updateTimer() {
-        seconds++;
-        const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
-        const secs = (seconds % 60).toString().padStart(2, '0');
+        timeLeft--;
+        const mins = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+        const secs = (timeLeft % 60).toString().padStart(2, '0');
         timerDisplay.textContent = `${mins}:${secs}`;
+        
+        if (timeLeft <= 10) {
+            timerDisplay.classList.remove('text-gray-500');
+            timerDisplay.classList.add('text-red-600', 'animate-pulse');
+        }
 
-        if (seconds >= 60) {
+        if (timeLeft <= 0) {
             stopRecordingAndSubmit();
         }
     }
@@ -204,8 +209,10 @@
             stopButton.classList.remove('hidden');
             recordingIndicator.classList.remove('hidden');
 
-            seconds = 0;
-            timerDisplay.textContent = "00:00";
+            timeLeft = 60;
+            timerDisplay.textContent = "01:00";
+            timerDisplay.classList.remove('text-red-600', 'animate-pulse');
+            timerDisplay.classList.add('text-gray-500');
             timerInterval = setInterval(updateTimer, 1000);
 
         } catch (err) {
@@ -313,6 +320,13 @@
 
     document.addEventListener("DOMContentLoaded", function () {
         startWebcam();
+        // Automatically start recording after 1 second
+        setTimeout(() => {
+            const recordBtn = document.getElementById('recordButton');
+            if (!recordBtn.disabled && !recordBtn.classList.contains('hidden')) {
+                recordBtn.click();
+            }
+        }, 1000);
     });
 </script>
 {% endblock %}
